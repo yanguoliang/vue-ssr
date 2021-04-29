@@ -21,6 +21,7 @@ vue的文档已经写的很好了，但是官方文档的例子涉及webpack的�
 - 快的内容到达时间 (time-to-content)，特别是对于缓慢的网络情况或运行缓慢的设备；
 
 ## 2、将vue实例转化为HTML字符串
+源码：[demo01](https://github.com/yanguoliang/vue-ssr/tree/main/demo01)
 ```
 // server.js
 // 第 1 步：创建一个 Vue 实例
@@ -38,6 +39,7 @@ const html = await renderer.renderToString(app);
 ```
 ## 3、使用express搭建node服务
 ### 3.1 配合express
+源码：[demo02](https://github.com/yanguoliang/vue-ssr/tree/main/demo02)
 ```
 const Vue = require('vue');
 const server = require('express')();
@@ -60,6 +62,7 @@ server.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 ```
 运行node server.js, 访问http://127.0.0.1:3000, 就可以得到访问结果。
 ### 3.2 使用模板
+源码：[demo02](https://github.com/yanguoliang/vue-ssr/tree/main/demo03)
 ```
 // server.js
 const Vue = require('vue');
@@ -94,7 +97,8 @@ server.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 ```
 这个栗子的效果和3.1一样，只是使用了带有template模板的渲染器。
 
-### 3.3 模板插值
+### 3.3 
+源码：[demo04](https://github.com/yanguoliang/vue-ssr/tree/main/demo04)
 ```
 // temelate.html
 <html>
@@ -151,6 +155,7 @@ server.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 > 特别说明：由于没有使用webpack，我们只能选择esmodule模块来完成服务器和浏览器通用的代码。使用 `node --experimental-modules xxx.mjs`就可以在node.js中运行esmodule了。因此我们把所有的js的扩展名都改成了`.mjs`，并且使用`server.use(express.static('./'))`提供静态服务器，为浏览器载app.mjs，vue.esm.mjs，vue-router.esm.mjs等文件。在HTML中使用`<script type="module"></script>`加载浏览器代码。其中vue.esm.mjs，vue-router.esm.mjs两个文件是从vue的npm安装包中拷贝出来的，并且在代码的开头添加`var process = { env:{ NODE_ENV: 'development' } }`mock了环境变量，保证vue代码的正常运行。
 
 ### 4.1 完整的服务端渲染
+源码：[demo05](https://github.com/yanguoliang/vue-ssr/tree/main/demo05)
 ```
 // server.mjs
 import fs from 'fs';
@@ -227,6 +232,8 @@ export const createApp = (context = {}) => {
 </html>
 ```
 # 4.2 使用vue-router的服务端渲染
+源码：[demo06](https://github.com/yanguoliang/vue-ssr/tree/main/demo06)
+如果我们直接在浏览器地址栏请求`127.0.0.1:3000/foo`,此时浏览器会向服务器请求页面，服务器根据路由匹配一个完成的app实例，渲染成完整的HTML页面返回前端。如果使用`<router-link to='/foo'>foo</router-link>`从bar路由跳转到foo路由，浏览器不会向服务器发起请求（此时是客户端接管）。
 ```
 // server.mjs
 import vueServerRenderer from 'vue-server-renderer';
@@ -342,3 +349,12 @@ export const createApp = (context = {}) => {
 </body>
 </html>
 ```
+# 4.3 客户端数据预取
+源码：[demo07](https://github.com/yanguoliang/vue-ssr/tree/main/demo07) 
+
+这是[官方文档](https://ssr.vuejs.org/zh/guide/data.html#%E6%95%B0%E6%8D%AE%E9%A2%84%E5%8F%96%E5%AD%98%E5%82%A8%E5%AE%B9%E5%99%A8-data-store)说明。
+
+vue路由会匹配路由对应的组件，调用组件的`asyncData`方法抓取数据渲染组件，并返回一个promise。待promise完成后得到一个完整的App实例，将App实例渲染成完整页面返回给浏览器。当`<router-link to='/foo'>foo</router-link>`从bar路由跳转到foo路由时，渲染则是客户端完成的。客户端vue通过`router.beforeResolve`拦截路由，然后调用`asyncData `方法，返回的promise完成后初始化渲染，然后调用next计入目标路由页面。
+# 4.4 使用webpack配置服务端渲染
+源码：[demo08](https://github.com/yanguoliang/vue-ssr/tree/main/demo08)
+本栗子使用了vue-cli使用vue.config.js配置打包，通过`npm run build:client`和`npm run build:server`分别完成服务端和客户端的构建，得到通用的代码，client资源表`vue-ssr-client-manifest.json`和server资源表`vue-ssr-server-bundle.json`, 但是基本原理和前面讲的一样。
