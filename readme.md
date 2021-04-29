@@ -97,7 +97,7 @@ server.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 ```
 这个栗子的效果和3.1一样，只是使用了带有template模板的渲染器。
 
-### 3.3 
+### 3.3 传递context
 源码：[demo04](https://github.com/yanguoliang/vue-ssr/tree/main/demo04)
 ```
 // temelate.html
